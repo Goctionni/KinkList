@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Kinklist</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+        <style>
+            body {
+                font-family: 'Verdana', 'Arial';
+                font-size: 12px;
+            }
+            table {
+                border-collapse: collapse;
+                min-width: 375px;
+            }
+            table + table {
+                margin-top: 10px;
+            }
+            th {
+                border: solid #999 1px;
+                border-right: none;
+                margin: 0px;
+                padding: 4px;
+                background-color: #666;
+                color: #FFF;
+            }
+            th.choicesCol {
+                box-sizing: border-box;
+                width: 104px;
+            }
+            th + th {
+                border-left: none;
+            }
+            th:last-child {
+                border-right: solid #999 1px;
+            }
+            td {
+                border-left: solid #999 1px;
+                border-bottom: solid #999 1px;
+                border-right: solid #999 1px;
+                margin: 0px;
+                padding: 4px;
+            }
+            td + td {
+                border-left-style: none;
+            }
+            .choice {
+                box-sizing: border-box;
+                width: 15px;
+                height: 15px;
+                opacity: 0.35;
+                overflow: hidden;
+                text-indent: 100px;
+                border: solid #000 1px;
+                border-radius: 50%;
+                outline-style: none!important;
+                vertical-align: middle;
+                display: inline-block;
+                cursor: pointer;
+                transition: all 0.3s ease-in-out;
+                font-size: 0;
+                padding: 0;
+            }
+            .choice + .choice {
+                margin-left: 5px;
+            }
+            .choices .choice:hover {
+                opacity: 0.75;
+            }
+            .choice.selected {
+                opacity: 1;
+                border-width: 2px;
+            }
+            .choice.notEntered {
+                background-color: #FFF;
+            }
+            .choice.favorite {
+                background-color: #73A;
+            }
+            .choice.yes {
+                background-color: #0B5;
+            }
+            .choice.maybe {
+                background-color: #FF0;
+            }
+            .choice.no {
+                background-color: #F00;
+            }
+            
+            .kinkCategory {
+                position: absolute;
+                margin-top: 40px;
+                margin-left: 10px;
+            }
+            .kinkCategory.cat-bodies { left: 000px; top: 000px; }
+            .kinkCategory.cat-clothing { left: 000px; top: 225px; }
+            .kinkCategory.cat-groupings { left: 000px; top: 525px; }
+            .kinkCategory.cat-general { left: 400px; top: 000px; }
+            .kinkCategory.cat-assPlay { left: 400px; top: 550px; }
+            .kinkCategory.cat-kinksBdsm { left: 800px; top: 000px; }
+            .kinkCategory.cat-pain { left: 1200px; top: 000px; }
+            .kinkCategory.cat-extreme { left: 1200px; top: 425px; }
+            
+            .legend {
+                position: absolute;
+                top: 22px;
+                left: 130px;
+                vertical-align: middle;
+                font-size: 14px;
+            }
+            .legend .choice {
+                margin-left: 30px;
+                opacity: 1;
+                cursor: default;
+                margin-bottom: 2px;
+            }
+            canvas {
+                width: 1200px;
+                height: 750px;
+            }
+            #URL {
+                display: none;
+                position: absolute;
+                box-sizing: border-box;
+                top: 13px;
+                width: 300px;
+                left: 1120px;
+                height: 30px;
+                border-radius: 4px;
+                border: solid #CCC 1px;
+                font-size: 16px;
+                padding: 10px;
+                text-align: center;
+                color: #666;
+                font-weight: bold;
+            }
+            #Export {
+                position: absolute;
+                box-sizing: border-box;
+                top: 10px;
+                left: 1430px;
+                color: #FFF;
+                text-transform: uppercase;
+                background-color: #4980ae;
+                width: 150px;
+                height: 36px;
+                font-size: 18px;
+                border-style: none;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.3s ease-in-out;
+            }
+            #Export:hover {
+                opacity: 0.85;
+            }
+            #Loading {
+                position: absolute;
+                left: 1640px;
+                top: 15px;
+                overflow: visible;
+                line-height: 26px;
+                font-size: 16px;
+                color: #999;
+                font-weight: bold;
+                display: none;
+            }
+            #Loading:before {
+                content: '';
+                position: absolute;
+                box-sizing: border-box;
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                border: solid #999 2px;
+                border-top-color: transparent;
+                border-left-color: #CCC;
+                border-right-color: #666;
+                animation: spin .5s infinite linear;
+                margin-left: -40px;
+            }
+            @keyframes spin {
+                0% {transform: rotate(0deg);}
+                100% {transform: rotate(-360deg);}
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Kink list</h1>
+        <div class="legend">
+            <div class="choice notEntered"></div> Not Entered
+            <div class="choice favorite"></div> Favorite
+            <div class="choice yes"></div> Yes
+            <div class="choice maybe"></div> Maybe
+            <div class="choice no"></div> No
+        </div>
+        <input type="text" id="URL">
+        <button id="Export">Export</button>
+        <div id="Loading">Loading...</div>
+        <div id="InputList"></div>
+        <script>
+            $(function(){
+                var imgurClientId = '9db53e5936cd02f';
+                
+                var colors = {
+                    "Not entered": "#FFFFFF",
+                    "Favorite": "#7733AA",
+                    "Yes": "#00BB55",
+                    "Maybe": "#FFFF00",
+                    "No": "#FF0000"
+                };
+                
+                var level = {
+                    "Not entered": "notEntered",
+                    "Favorite": "favorite",
+                    "Yes": "yes",
+                    "Maybe": "maybe",
+                    "No": "no"
+                };
+
+                var kinks = {
+                    "Bodies": {
+                        fields: ['General'],
+                        groups: [['Skinny', 'Chubby', 'Small breasts', 'Large breasts', 'Small cocks', 'Large cocks']]
+                    },
+                    "Clothing": {
+                        fields: ['Self', 'Partner'],
+                        groups: [['Clothed sex', 'Lingerie', 'Stockings', 'Heels', 'Leather', 'Latex', 'Uniforms', 'Socks', 'Cross-dressing']]
+                    },
+                    "Groupings": {
+                        fields: ['General'],
+                        groups: [['MM', 'FF', 'MF', 'MMF, MFM', 'FFM, FMF', 'Gangbang', 'Orgy']]
+                    },
+                    "General": {
+                        fields: ['Giving', 'Receiving'],
+                        groups: [['Voice: soft', 'Voice: rough/raspy', 'Kindness', 'Kissing', 'Caressing touches', 'Handjobs', 'Pussy fingering', 'Blowjobs', 'Deep throat', 'Swallowing', 'Facials', 'Cunnilingus', 'Face-sitting', 'Toys', 'Edging', 'Teasing', 'JOI, SI', 'Orgasm denial', 'Vaginal fisting']]
+                    },
+                    "Ass play": {
+                        fields: ['Giving', 'Receiving'],
+                        groups: [['Anal toys', 'Anal sex, pegging', 'Rimming', 'Double penetration', 'Anal fisting']]
+                    },
+                    "Kinks, BDSM": {
+                        fields: ['Giving', 'Receiving'],
+                        groups: [
+                            ['Male dom', 'Female domme', 'Power exchange', 'Master/slave', 'Master/pet', 'Servitude', 'Humiliation', 'Degradation', 'Name-calling', 'Bondage, light', 'Bondage, heavy', 'Encasement' ,'Discipline', 'Blackmail / Coercion', 'Rape', 'Kidnapping', 'Forced orgasm', 'Chastity', 'Drunken sex', 'Forced clothing', 'Cum play', 'Extreme cum play', 'Glory hole', 'Sleep play', 'Sounding'],
+                            ['Begging', 'Cock worship', 'Pussy worship', 'Foot worship', 'Body worship', 'Tickling', 'Sensation play', 'E-stim', 'Breath-play', 'Choking', 'Gags', 'Collars', 'Leashes'],
+                            ['Incest', 'Impregnation', 'Pregnancy', 'Lactation', 'Feet', 'Feminization', 'Petplay', 'Ageplay', 'Cheating', 'Cuckold/Cuckqueen', 'Exhibitionism', 'Voyeurism', 'Furry']
+                        ]
+                    },
+                    "Pain": {
+                        fields: ['Giving', 'Receiving'],
+                        groups: [['Light pain', 'Heavy pain', 'Nipple clamps', 'Clothes pins', 'Spanking', 'Cock/Ball slapping', 'Pussy slapping', 'Hard spanking', 'Caning', 'Flogging', 'Beating', 'Hot Wax', 'Scratching', 'Biting']]
+                    },
+                    "Extreme": {
+                        fields: ['Giving', 'Receiving'],
+                        groups: [['Cutting', 'Blood', 'Piss', 'Scat', 'Diapers', 'Bestiality', 'Vore', 'Necrophilia', 'Torture']]
+                    }
+                };
+                
+                var log = function(val, base) {
+                    return Math.log(val) / Math.log(base);
+                };
+                var strToClass = function(str){
+                    var className = "";
+                    str = str.toLowerCase();
+                    var validChars = 'abcdefghijklmnopqrstuvwxyz';
+                    var newWord = false;
+                    for(var i = 0; i < str.length; i++) {
+                        var chr = str[i];
+                        if(validChars.indexOf(chr) >= 0) {
+                            if(newWord) chr = chr.toUpperCase();
+                            className += chr;
+                            newWord = false;
+                        }
+                        else {
+                            newWord = true;
+                        }
+                    }
+                    return className;
+                }
+                
+                var inputKinks = {
+                    createCategory: function(name){
+                        return $('<div class="kinkCategory">').addClass('cat-' + strToClass(name)).data('category', name).append($('<h2>').text(name));
+                    },
+                    createGroup: function(fields){
+                        var $table = $('<table class="kinkGroup">');
+                        var $thead = $('<thead>').appendTo($table);
+                        
+                        for(var i = 0; i < fields.length; i++) {
+                            $('<th>').addClass('choicesCol').text(fields[i]).appendTo($thead);
+                        }
+                        $('<th>').appendTo($thead);
+                        return $table;
+                    },
+                    createChoice: function(){
+                        var $container = $('<div>').addClass('choices');
+                        var levels = Object.keys(level);
+                        for(var i = 0; i < levels.length; i++) {
+                            $('<button>')
+                                    .addClass('choice')
+                                    .addClass(level[levels[i]])
+                                    .data('level', levels[i])
+                                    .data('levelInt', i)
+                                    .attr('title', levels[i])
+                                    .appendTo($container)
+                                    .on('click', function(){
+                                        $container.find('button').removeClass('selected');
+                                        $(this).addClass('selected');
+                                    });
+                        }
+                        return $container;
+                    },
+                    createKink: function(fields, name){
+                        var $row = $('<tr>').data('kink', name).addClass('kinkRow');
+                        for(var i = 0; i < fields.length; i++) {
+                            var $choices = inputKinks.createChoice();
+                            $choices.data('field', fields[i]);
+                            $('<td>').append($choices).appendTo($row);
+                        }
+                        $('<td>').text(name).appendTo($row);
+                        return $row;
+                    },
+                    init: function(){
+                        $('#InputList').empty();
+                        var kinkCats = Object.keys(kinks);
+                        for(var i = 0; i < kinkCats.length; i++) {
+                            var catName = kinkCats[i];
+                            var $category = inputKinks.createCategory(catName);
+                            
+                            var fields = kinks[catName].fields;
+                            var groups = kinks[catName].groups;
+                            for(var j = 0; j < groups.length; j++) {
+                                var $group = inputKinks.createGroup(fields);
+                                var kinkArr = groups[j];
+                                for(var k = 0; k < kinkArr.length; k++) {
+                                    $group.append(inputKinks.createKink(fields, kinkArr[k]));
+                                }
+                                $category.append($group);
+                            }
+                            
+                            $('#InputList').append($category);
+                        }
+                        
+                        $('#InputList').find('button.choice').on('click', function(){
+                            location.hash = inputKinks.updateHash();
+                        });
+                        
+                        inputKinks.parseHash();
+                        
+                        $('#Export').on('click', inputKinks.export);
+                        $('#URL').on('click', function(){ this.select(); })
+                    },
+                    hashChars: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.=+*^!@",
+                    maxPow: function(base, maxVal) {
+                        var maxPow = 1;
+                        for(var pow = 1; Math.pow(base, pow) <= maxVal; pow++){
+                            maxPow = pow;
+                        }
+                        return maxPow;
+                    },
+                    prefix: function(input, len, char){
+                        while(input.length < len) {
+                            input = char + input;
+                        }
+                        return input;
+                    },
+                    exportData: {
+                        positions: {
+                            'Bodies': [[10, 80]],
+                            'Clothing': [[10, 285]],
+                            'Groupings': [[10, 550]],
+                            'General': [[260, 100]],
+                            'Ass play': [[260, 630]],
+                            'Kinks, BDSM': [[510, 100], [760, 100], [760, 465]],
+                            'Pain': [[1010, 100]],
+                            'Extreme': [[1010, 505]]
+                        }
+                    },
+                    drawLegend: function(context){
+                        context.font = "bold 13px Arial";
+                        context.fillStyle = '#000000';
+                        
+                        var levels = Object.keys(colors);
+                        for(var i = 0; i < levels.length; i++) {
+                            context.beginPath();
+                            context.arc(600 + (i * 120), 20, 8, 0, 2 * Math.PI, false);
+                            context.strokeStyle = '#000000'
+                            context.lineWidth = 1;
+                            context.stroke();
+                            context.fillStyle = colors[levels[i]];
+                            context.fill();
+                            
+                            context.fillStyle = '#000000';
+                            context.fillText(levels[i], 615 + (i * 120), 25);
+                        }
+                    },
+                    export: function(){
+                        $('#Loading').fadeIn();
+                        $('#URL').fadeOut();
+                        
+                        var username = '(' + prompt("Please enter your name") + ')';
+                        if(username === '()') username = '';
+                        
+                        var canvas = document.createElement('canvas');
+                        canvas.width = 1200;
+                        canvas.height = 750;
+                        //$('body').append($(canvas));
+                        
+                        var context = canvas.getContext('2d');
+                        context.fillStyle = '#FFFFFF';
+                        context.fillRect(0, 0, context.width, context.height);
+                        
+                        context.font = "bold 24px Arial";
+                        context.fillStyle = '#000000';
+                        context.fillText('Kinklist ' + username, 5, 25);
+                        
+                        inputKinks.drawLegend(context);
+                        
+                        $('#InputList .kinkCategory').each(function(){
+                            var $cat = $(this);
+                            var category = $cat.data('category');
+                            
+                            var titleX = inputKinks.exportData.positions[category][0][0];
+                            var titleY = inputKinks.exportData.positions[category][0][1] - 45;
+                            
+                            context.fillStyle = '#000000';
+                            if(kinks[category].fields.length > 1) {
+                                var fieldsStr = kinks[category].fields.join(', ');
+                                var subTitleX = titleX;
+                                var subTitleY = titleY + 20;
+                                context.font = "italic 12px Arial";
+                                context.fillText(fieldsStr, subTitleX, subTitleY);
+                            }
+                            else {
+                                titleY += 20;
+                            }
+                            context.font = "bold 18px Arial";
+                            context.fillText(category, titleX, titleY);
+                            
+                            var grpId = 0;
+                            // Everything inside gets small font
+                            context.font = "12px Arial";
+                            $cat.find('.kinkGroup').each(function(){
+                                var $grp = $(this);
+                                var rowId = 0;
+                                $grp.find('.kinkRow').each(function(){
+                                    var $kinkRow = $(this);
+                                    var grpPos = inputKinks.exportData.positions[category][grpId];
+                                    var pos = [grpPos[0], grpPos[1] + (rowId * 25)];
+                                    
+                                    var kink = $kinkRow.data('kink');
+                                    var $fields = $kinkRow.find('.choices');
+                                    $fields.each(function(){
+                                        var $field = $(this);
+                                        var field = $field.data('field');
+                                        var fieldIndex = $field.closest('td').index();
+                                        var level = $field.find('.selected').data('level');
+                                        if(!level) level = "Not entered";
+                                        
+                                        context.beginPath();
+                                        context.arc(pos[0] + 10 + (fieldIndex * 20), pos[1] - 4, 8, 0, 2 * Math.PI, false);
+                                        context.stroke();
+                                        context.fillStyle = colors[level];
+                                        context.fill();
+                                        
+                                    });
+                                    context.fillStyle = '#000000';
+                                    context.fillText(kink,pos[0] + 5 + ($fields.length * 20),pos[1]);
+                                    rowId++;
+                                });
+                                grpId++;
+                            });
+                            
+                        });
+                        
+                        // canvas
+                        // Send to imgur
+                        $.ajax({
+                            url: 'https://api.imgur.com/3/image',
+                            type: 'POST',
+                            headers: {
+                                // Your application gets an imgurClientId from Imgur
+                                Authorization: 'Client-ID ' + imgurClientId,
+                                Accept: 'application/json'
+                            },
+                            data: {
+                                // convert the image data to base64
+                                image:  canvas.toDataURL().split(',')[1],
+                                type: 'base64'
+                            },
+                            success: function(result) {
+                                $('#Loading').hide();
+                                var url = 'https://i.imgur.com/' + result.data.id + '.png';
+                                $('#URL').val(url).fadeIn();
+                            }
+                        });                            
+                    },
+                    encode: function(base, input){
+                        var hashBase = inputKinks.hashChars.length;
+                        var outputPow = inputKinks.maxPow(hashBase, Number.MAX_SAFE_INTEGER);
+                        var inputPow = inputKinks.maxPow(base, Math.pow(hashBase, outputPow));
+                        
+                        var output = "";
+                        var numChunks = Math.ceil(input.length / inputPow);
+                        var inputIndex = 0;
+                        for(var chunkId = 0; chunkId < numChunks; chunkId++) {
+                            var inputIntValue = 0;
+                            for(var pow = 0; pow < inputPow; pow++) {
+                                var inputVal = input[inputIndex++];
+                                if(typeof inputVal === "undefined") break;
+                                var val = inputVal * Math.pow(base, pow);
+                                inputIntValue += val;
+                            }
+                            var inputIntValueCopy = inputIntValue;
+                            
+                            var outputCharValue = "";
+                            while(inputIntValue > 0) {
+                                var maxPow = Math.floor(log(inputIntValue, hashBase));
+                                var powVal = Math.pow(hashBase, maxPow);
+                                var charInt = Math.floor(inputIntValue / powVal);
+                                var subtract = charInt * powVal;
+                                var char = inputKinks.hashChars[charInt];
+                                outputCharValue += char;
+                                inputIntValue -= subtract;
+                            }
+                            var chunk = inputKinks.prefix(outputCharValue, outputPow, inputKinks.hashChars[0]);
+                            console.log(inputIntValueCopy, chunk);
+                            output += chunk;
+                        }
+                        return output;
+                    },
+                    decode: function(base, output){
+                        var hashBase = inputKinks.hashChars.length;
+                        var outputPow = inputKinks.maxPow(hashBase, Number.MAX_SAFE_INTEGER);
+                        
+                        var values = [];
+                        var numChunks = Math.max(output.length / outputPow)
+                        for(var i = 0; i < numChunks; i++){
+                            var chunk = output.substring(i * outputPow, (i + 1) * outputPow);
+                            var chunkValues = inputKinks.decodeChunk(base, chunk);
+                            for(var j = 0; j < chunkValues.length; j++) {
+                                values.push(chunkValues[j]);
+                            }
+                        }
+                        return values;
+                    },
+                    decodeChunk: function(base, chunk){
+                        var hashBase = inputKinks.hashChars.length;
+                        var outputPow = inputKinks.maxPow(hashBase, Number.MAX_SAFE_INTEGER);
+                        var inputPow = inputKinks.maxPow(base, Math.pow(hashBase, outputPow));
+                        
+                        var chunkInt = 0;
+                        for(var i = 0; i < chunk.length; i++) {
+                            var char = chunk[i];
+                            var charInt = inputKinks.hashChars.indexOf(char);
+                            var pow = chunk.length - 1 - i;
+                            var intVal = Math.pow(hashBase, pow) * charInt;
+                            chunkInt += intVal;
+                        }
+                        var chunkIntCopy = chunkInt;
+                        
+                        var output = [];
+                        for(var pow = inputPow - 1; pow >= 0; pow--) {
+                            var posBase = Math.floor(Math.pow(base, pow));
+                            var posVal = Math.floor(chunkInt / posBase);
+                            var subtract = posBase * posVal;
+                            output.push(posVal);
+                            chunkInt -= subtract;
+                        }
+                        output.reverse();
+                        return output;
+                    },
+                    updateHash: function(){
+                        var hashValues = [];
+                        $('#InputList .choices').each(function(){
+                            var $this = $(this);
+                            var lvlInt = $this.find('.selected').data('levelInt');
+                            if(!lvlInt) lvlInt = 0;
+                            hashValues.push(lvlInt);
+                        });
+                        return inputKinks.encode(5, hashValues);
+                    },
+                    parseHash: function(){
+                        var hash = location.hash.substring(1);
+                        if(hash.length < 10) return;
+                        
+                        var values = inputKinks.decode(5, hash);
+                        var valueIndex = 0;
+                        $('#InputList .choices').each(function(){
+                            var $this = $(this);
+                            var value = values[valueIndex++];
+                            $this.children().eq(value).addClass('selected');
+                        });
+                    }
+                };
+                
+                inputKinks.init();
+                window.inputKinks = inputKinks;
+            });
+        </script>
+    </body>
+</html>
