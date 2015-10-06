@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>TODO supply a title</title>
+        <title>Kinklist</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
@@ -45,7 +45,7 @@
             td + td {
                 border-left-style: none;
             }
-            .choices .choice {
+            .choice {
                 box-sizing: border-box;
                 width: 15px;
                 height: 15px;
@@ -62,29 +62,29 @@
                 font-size: 0;
                 padding: 0;
             }
-            .choices .choice + .choice {
+            .choice + .choice {
                 margin-left: 5px;
             }
             .choices .choice:hover {
                 opacity: 0.75;
             }
-            .choices .choice.selected {
+            .choice.selected {
                 opacity: 1;
                 border-width: 2px;
             }
-            .choices .choice.notEntered {
+            .choice.notEntered {
                 background-color: #FFF;
             }
-            .choices .choice.favorite {
+            .choice.favorite {
                 background-color: #73A;
             }
-            .choices .choice.yes {
+            .choice.yes {
                 background-color: #0B5;
             }
-            .choices .choice.maybe {
+            choice.maybe {
                 background-color: #FF0;
             }
-            .choices .choice.no {
+            .choice.no {
                 background-color: #F00;
             }
             
@@ -101,10 +101,31 @@
             .kinkCategory.cat-kinksBdsm { left: 800px; top: 000px; }
             .kinkCategory.cat-pain { left: 1200px; top: 000px; }
             .kinkCategory.cat-extreme { left: 1200px; top: 425px; }
+            
+            .legend {
+                position: absolute;
+                top: 22px;
+                left: 130px;
+                vertical-align: middle;
+                font-size: 14px;
+            }
+            .legend .choice {
+                margin-left: 30px;
+                opacity: 1;
+                cursor: default;
+                margin-bottom: 2px;
+            }
         </style>
     </head>
     <body>
         <h1>Kink list</h1>
+        <div class="legend">
+            <div class="choice notEntered"></div> Not Entered
+            <div class="choice favorite"></div> Favorite
+            <div class="choice yes"></div> Yes
+            <div class="choice maybe"></div> Maybe
+            <div class="choice no"></div> No
+        </div>
         <div id="InputList"></div>
         <script>
             $(function(){
