@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Kinklist</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+        <style>
+            body {
+                font-family: 'Verdana', 'Arial';
+                font-size: 12px;
+            }
+            h2 {
+                padding: 0;
+                margin: 0;
+                margin-top: 10px;
+                margin-bottom: 5px;
+                font-size: 18px;
+            }
+            table {
+                border-collapse: collapse;
+                margin-bottom: 10px;
+                width: 100%;
+            }
+            th {
+                border: solid #999 1px;
+                border-right: none;
+                margin: 0px;
+                padding: 4px;
+                background-color: #666;
+                color: #FFF;
+            }
+            th.choicesCol {
+                box-sizing: border-box;
+                width: 125px;
+            }
+            th + th {
+                border-left: none;
+            }
+            th:last-child {
+                border-right: solid #999 1px;
+            }
+            td {
+                border-left: solid #999 1px;
+                border-bottom: solid #999 1px;
+                border-right: solid #999 1px;
+                margin: 0px;
+                padding: 4px;
+                padding-right: 2px;
+            }
+            @-moz-document url-prefix() { 
+              td {
+                 padding: 3.3px;
+              }
+            }            
+            td + td {
+                border-left-style: none;
+            }
+            .choice {
+                box-sizing: border-box;
+                width: 15px;
+                height: 15px;
+                opacity: 0.35;
+                overflow: hidden;
+                text-indent: 100px;
+                border: solid #000 1px;
+                border-radius: 50%;
+                outline-style: none!important;
+                vertical-align: middle;
+                display: inline-block;
+                cursor: pointer;
+                transition: all 0.3s ease-in-out;
+                font-size: 0;
+                padding: 0;
+            }
+            .choice + .choice {
+                margin-left: 5px;
+            }
+            .choices .choice:hover {
+                opacity: 0.75;
+            }
+            .choice.selected {
+                opacity: 1;
+                border-width: 2px;
+            }
+            .choice.notEntered {
+                background-color: #FFF;
+            }
+            .choice.favorite {
+                background-color: #FE6BB4;
+            }
+            .choice.like {
+                background-color: #23FD22;
+            }
+            .choice.okay {
+                background-color: #FDFD6B;
+            }
+            .choice.maybe {
+                background-color: #DB6C00;
+            }
+            .choice.no {
+                background-color: #920000;
+            }
+            
+            .legend {
+                vertical-align: middle;
+                font-size: 14px;
+            }
+            .legend div {
+                display: inline-block;
+            }
+            .legend .choice {
+                opacity: 1;
+                cursor: default;
+                margin-bottom: 2px;
+            }
+            
+            #ExportWrapper {
+                width: 460px;
+                height: 36px;
+            }
+            #URL {
+                display: none;
+                position: absolute;
+                top: 3px;
+                box-sizing: border-box;
+                width: 300px;
+                height: 30px;
+                border-radius: 4px;
+                border: solid #CCC 1px;
+                font-size: 16px;
+                padding: 10px;
+                text-align: center;
+                color: #666;
+                font-weight: bold;
+            }
+            #Export {
+                position: absolute;
+                left: 310px;
+                box-sizing: border-box;
+                color: #FFF;
+                text-transform: uppercase;
+                background-color: #4980ae;
+                font-size: 18px;
+                width: 150px;
+                height: 36px;
+                border-style: none;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.3s ease-in-out;
+            }
+            #Export:hover {
+                opacity: 0.85;
+            }
+            #Loading {
+                display: none;
+                overflow: visible;
+                line-height: 26px;
+                font-size: 16px;
+                color: #999;
+                font-weight: bold;
+                position: absolute;
+                top: 4px;
+                left: 220px;
+            }
+            #Loading:before {
+                content: '';
+                position: absolute;
+                box-sizing: border-box;
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                border: solid #999 2px;
+                border-top-color: transparent;
+                border-left-color: #CCC;
+                border-right-color: #666;
+                animation: spin .5s infinite linear;
+                margin-left: -40px;
+            }
+            @media (min-width: 1700px) {
+                .legend {
+                    position: absolute;
+                    top: 7px;
+                    left: 160px;
+                }
+                .legend div {
+                    width: 130px;
+                }
+                #ExportWrapper {
+                    position: absolute;
+                    top: -3px;
+                    right: 5px;
+                }
+                h1 {
+                    margin-bottom: 0;
+                }
+            }
+            @media (max-width: 1700px) and (min-width: 800px) {
+                .legend div {
+                    width: 130px;
+                    padding-bottom: 10px;
+                }
+                #ExportWrapper {
+                    position: absolute;
+                    top: -3px;
+                    right: 5px;
+                }
+            }
+            @media (max-width: 800px) and (min-width: 598px) {
+                .legend div {
+                    width: 180px;
+                    padding-bottom: 10px;
+                    padding-left: 10px;
+                }
+                #ExportWrapper {
+                    position: relative;
+                    margin-top: 10px;
+                    margin-left: 5px;
+                }
+                #URL {
+                    left: 155px;
+                    width: 190px;
+                    font-size: 10px;
+                }
+                #Export {
+                    left: 0px;
+                }
+                #Loading {
+                    left: 230px;
+                }
+            }
+            @media (max-width: 597px) {
+                body {
+                    font-size: 10px;
+                }
+                table {
+                    min-width: 345px;
+                }
+                .legend div {
+                    width: 150px;
+                    padding-bottom: 10px;
+                    padding-left: 10px;
+                }
+                #ExportWrapper {
+                    position: relative;
+                    margin-top: 10px;
+                    margin-left: 0px;
+                    width: 345px;
+                }
+                #URL {
+                    left: 155px;
+                    width: 190px;
+                    font-size: 10px;
+                }
+                #Export {
+                    left: 0px;
+                }
+                #Loading {
+                    left: 230px;
+                }
+            }
+            @keyframes spin {
+                0% {transform: rotate(0deg);}
+                100% {transform: rotate(-360deg);}
+            }
+            
+            #ExportWrapper :last-child:after {
+                content: '';
+                display: block;
+                clear: both;
+            }
+            .kinkCategory {
+                
+            }
+            .col {
+                float: left;
+                box-sizing: border-box;
+                margin: 0;
+                padding: 5px;
+            }
+            .col.col25 { width: 25%; }
+            .col.col33 { width: 33.33333%; }
+            .col.col50 { width: 50%; }
+            .col.col100 { width: 100%; padding: 0px; }
+            .widthWrapper {
+                max-width: 1700px;
+                margin-left: auto;
+                margin-right: auto;
+                position: relative;
+            }
+            #Edit {
+                width: 18px;
+                height: 18px;
+                background-color: transparent;
+                background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNui8sowAAAAWdEVYdENyZWF0aW9uIFRpbWUAMTAvMTIvMTUsb8MLAAABaElEQVQ4jZWUvY3jMBCF390mzpQ6I1wBS5A6oDuQOxi4Ap4rUAlqwR1M7IhQBYRCR1To7G1giJBkes/7gElGg4/zK7AgVaWI0FpLAIwxlsJWwtbRdR0BrKzruvw9pUTnHEMIP4NCCC8gay2991TVnGVVVSvYCyil9AJ6Z0sY5nJCCEwp5Rc/NefcE6Sqb4OMMRQRigiNMcWSU0pPkIgUIW3b5gmqKkmybdtVzOwnSZRKMcaQJOu6zr66rklylZn3PoO+7vf7P2x0Op2w2+1wuVyybxxHNE0DALjdbgCAaZrweDyw3+/xN8aIvu9hrd3y/qthGHA+n3E4HJDH773/dWnLpmfQdnqfNHs2EeEfkpymCU3TYBiGVerGGByPRwDA9XrFOI7FElX1WZpz7ldLOO9PCCHfIeb7qqrqY9C8hEvlHi1h1lqqKr33xZPZXv4KNMOcc6sX+77/8bdSBJUUY8xZisjqLJb6Bpjss/W5PAkOAAAAAElFTkSuQmCC');
+                background-repeat: no-repeat;
+                float: left;
+                border-style: none;
+                outline-style: none!important;
+                margin-top: 6px;
+                margin-right: 4px;
+                opacity: 0.5;
+                cursor: pointer;
+            }
+            #Edit:hover {
+                opacity: 1;
+            }
+            #Overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.8);
+                display: none;
+            }
+            #Overlay #Kinks {
+                box-sizing: border-box;
+                position: absolute;
+                top: 10px;
+                bottom: 50px;
+                width: 330px;
+                left: 50%;
+                margin-left: -165px;
+                resize: none;
+                padding: 10px;
+                border-radius: 5px;
+                font-family: monospace, 'Courier new', Courier;
+            }
+            #Overlay #KinksOK {
+                box-sizing: border-box;
+                position: absolute;
+                bottom: 10px;
+                width: 330px;
+                height: 30px;
+                left: 50%;
+                margin-left: -165px;
+                color: #FFF;
+                text-transform: uppercase;
+                background-color: #4980ae;
+                font-size: 18px;
+                border-style: none;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="widthWrapper">
+            <button id="Edit"></button>
+            <h1>Kink list</h1>
+            <div class="legend">
+                <div><span class="choice notEntered"></span> Not Entered</div>
+                <div><span class="choice favorite"></span> Favorite</div>
+                <div><span class="choice like"></span> Like</div>
+                <div><span class="choice okay"></span> Okay</div>
+                <div><span class="choice maybe"></span> Maybe</div>
+                <div><span class="choice no"></span> No</div>
+            </div>
+            <div id="ExportWrapper">
+                <input type="text" id="URL">
+                <button id="Export">Export</button>
+                <div id="Loading">Loading</div>
+            </div>
+            <div id="InputList"></div>
+        </div>
+        <div id="Overlay">
+            <textarea id="Kinks"></textarea>
+            <button id="KinksOK">Accept</button>
+        </div>
+        <script>
+            $(function(){
+                
+                var imgurClientId = '9db53e5936cd02f';
+                
+                var colors = {
+                    "Not entered": "#FFFFFF",
+                    "Favorite": "#FE6BB4",
+                    "Like": "#23FD22",
+                    "Okay": "#FDFD6B",
+                    "Maybe": "#DB6C00",
+                    "No": "#920000"
+                };
+                
+                var level = {
+                    "Not entered": "notEntered",
+                    "Favorite": "favorite",
+                    "Like": "like",
+                    "Okay": 'okay',
+                    "Maybe": "maybe",
+                    "No": "no"
+                };
+
+                var kinks = {
+                    "Bodies": { 
+                        fields: ['General'],
+                        kinks: ['Skinny', 'Chubby', 'Small breasts', 'Large breasts', 'Small cocks', 'Large cocks']
+                    },
+                    "Clothing": {
+                        fields: ['Self', 'Partner'],
+                        kinks: ['Clothed sex', 'Lingerie', 'Stockings', 'Heels', 'Leather', 'Latex', 'Uniform / costume', 'Cross-dressing']
+                    },
+                    "Groupings": {
+                        fields: ['General'],
+                        kinks: ['You and 1 male', 'You and 1 female', 'You and MtF trans', 'You and FtM trans', 'You and 1 male, 1 female', 'You and 2 males', 'You and 2 females', 'Orgy']
+                    },
+                    "General": {
+                        fields: ['Giving', 'Receiving'],
+                        kinks: ['Romance / Affection', 'Handjob / fingering', 'Blowjob', 'Deep throat', 'Swallowing', 'Facials', 'Cunnilingus', 'Face-sitting', 'Edging', 'Teasing', 'JOI, SI']
+                    },
+                    "Ass play": {
+                        fields: ['Giving', 'Receiving'],
+                        kinks: ['Anal toys', 'Anal sex, pegging', 'Rimming', 'Double penetration', 'Anal fisting']
+                    },
+                    "Restrictive": {
+                        fields: ['Self', 'Partner'],
+                        kinks: ['Gag', 'Collar', 'Leash', 'Chastity', 'Bondage (Light)', 'Bondage (Heavy)', 'Encasement']
+                    },
+                    "Toys": {
+                        fields: ['Self', 'Partner'],
+                        kinks: ['Dildos', 'Plugs', 'Vibrators', 'Sounding']
+                    },
+                    "Domination": {
+                        fields: ['Dominant', 'Submissive'],
+                        kinks: ['Dominant / Submissive', 'Domestic servitude', 'Slavery', 'Pet play', 'DD/lg, MD/lb', 'Discipline', 'Begging', 'Forced orgasm', 'Orgasm control', 'Orgasm denial', 'Power exchange']
+                    },
+                    "No consent": {
+                        fields: ['Aggressor', 'Target'],
+                        kinks: ['Non-con / rape', 'Blackmail / coercion', 'Kidnapping', 'Drugs / alcohol', 'Sleep play']
+                    },
+                    "Taboo": {
+                        fields: ['General'],
+                        kinks: ['Incest', 'Ageplay', 'Interracial / Raceplay', 'Bestiality', 'Necrophilia', 'Cheating', 'Exhibitionism', 'Voyeurism']
+                    },
+                    "Surrealism": {
+                        fields: ['Self', 'Partner'],
+                        kinks: ['Futanari', 'Furry', 'Vore', 'Transformation', 'Tentacles', 'Monster or Alien']
+                    },
+                    "Fluids": {
+                        fields: ['General'],
+                        kinks: ['Blood', 'Watersports', 'Scat', 'Lactation', 'Diapers', 'Cum play']
+                    },
+                    "Degradation": {
+                        fields: ['Giving', 'Receiving'],
+                        kinks: ['Glory hole', 'Name calling', 'Humiliation']
+                    },
+                    "Touch & Stimulation": {
+                        fields: ['Actor', 'Subject'],
+                        kinks: ['Cock/Pussy worship', 'Ass worship', 'Foot play', 'Tickling', 'Sensation play', 'Electro stimulation']
+                    },
+                    "Misc. Fetish": {
+                        fields: ['Giving', 'Receiving'],
+                        kinks: ['Fisting', 'Gangbang', 'Breath play', 'Impregnation', 'Pregnancy', 'Feminization', 'Cuckold / Cuckquean']
+                    },
+                    "Pain": {
+                        fields: ['Giving', 'Receiving'],
+                        kinks: ['Light pain', 'Heavy pain', 'Nipple clamps', 'Clothes pins', 'Caning', 'Flogging', 'Beating', 'Spanking', 'Cock/Pussy slapping', 'Cock/Pussy torture', 'Hot Wax', 'Scratching', 'Biting', 'Cutting']
+                    }
+                };
+                
+                $('#Edit').on('click', function(){
+                    var KinksText = "";
+                    var kinkCats = Object.keys(kinks);
+                    for(var i = 0; i < kinkCats.length; i++){
+                        var catName = kinkCats[i];
+                        var catFields = kinks[catName].fields;
+                        var catKinks = kinks[catName].kinks;
+                        KinksText += '#' + catName + "\r\n";
+                        KinksText += '(' + catFields.join(', ') + ")\r\n";
+                        for(var j = 0; j < catKinks.length; j++){
+                            KinksText += '* ' + catKinks[j] + "\r\n";
+                        }
+                        KinksText += "\r\n";
+                    }
+                    $('#Kinks').val(KinksText.trim());
+                    $('#Overlay').fadeIn();
+                });
+                $('#Overlay').on('click', function(){
+                    $(this).fadeOut();
+                });
+                $('#Overlay *').on('click', function(e){
+                    e.stopPropagation();
+                });
+                
+                $('#KinksOK').on('click', function(){
+                    var selection = [];
+                    $('.choice.selected').each(function(){
+                        // .choice selector
+                        var selector = '.' + this.className.replace(/ /g, '.');
+                        // .choices selector
+                        selector = '.' + $(this).closest('.choices')[0].className.replace(/ /g, '.') + ' ' + selector;
+                        // .kinkRow selector
+                        selector = '.' + $(this).closest('tr.kinkRow')[0].className.replace(/ /g, '.') + ' ' + selector;
+                        // .kinkCategory selector
+                        selector = '.' + $(this).closest('.kinkCategory')[0].className.replace(/ /g, '.') + ' ' + selector;
+                        selector = selector.replace('.selected', '');
+                        selection.push(selector);
+                    });
+                    
+                    var newKinks = {};
+                    var kinksText = $('#Kinks').val();
+                    var lines = kinksText.replace(/\r/g, '').split("\n");
+                    
+                    var cat = null;
+                    var catName = null;
+                    for(var i = 0; i < lines.length; i++){
+                        var line = lines[i];
+                        if(!line.length) continue;
+                        
+                        if(line[0] === '#') {
+                            if(catName){
+                                newKinks[catName] = cat;
+                            }
+                            catName = line.substring(1).trim();
+                            cat = { kinks: [] };
+                        }
+                        if(!catName) continue;
+                        if(line[0] === '(') {
+                            cat.fields = line.substring(1, line.length - 1).trim().split(',');
+                            for(var j = 0; j < cat.fields.length; j++){
+                                cat.fields[j] = cat.fields[j].trim();
+                            }
+                        }
+                        if(line[0] === '*'){
+                            var kink = line.substring(1).trim();
+                            cat.kinks.push(kink);
+                        }
+                    }
+                    kinks = newKinks;
+                    inputKinks.fillInputList();
+                    
+                    $('#Overlay').fadeOut();
+                    setTimeout(function(){
+                        for(var i = 0; i < selection.length; i++){
+                            var selector = selection[i];
+                            $(selector).addClass('selected');
+                        }
+                        location.hash = inputKinks.updateHash();
+                    }, 300);
+                });
+                
+                var log = function(val, base) {
+                    return Math.log(val) / Math.log(base);
+                };
+                var strToClass = function(str){
+                    var className = "";
+                    str = str.toLowerCase();
+                    var validChars = 'abcdefghijklmnopqrstuvwxyz';
+                    var newWord = false;
+                    for(var i = 0; i < str.length; i++) {
+                        var chr = str[i];
+                        if(validChars.indexOf(chr) >= 0) {
+                            if(newWord) chr = chr.toUpperCase();
+                            className += chr;
+                            newWord = false;
+                        }
+                        else {
+                            newWord = true;
+                        }
+                    }
+                    return className;
+                };
+                
+                var inputKinks = {
+                    $columns: [],
+                    createCategory: function(name, fields){
+                        var $category = $('<div class="kinkCategory">')
+                                .addClass('cat-' + strToClass(name))
+                                .data('category', name)
+                                .append($('<h2>')
+                                .text(name));
+                        
+                        var $table = $('<table class="kinkGroup">').data('fields', fields);
+                        var $thead = $('<thead>').appendTo($table);
+                        for(var i = 0; i < fields.length; i++) {
+                            $('<th>').addClass('choicesCol').text(fields[i]).appendTo($thead);
+                        }
+                        $('<th>').appendTo($thead);
+                        $('<tbody>').appendTo($table);
+                        $category.append($table);
+                        
+                        return $category;
+                    },
+                    createChoice: function(){
+                        var $container = $('<div>').addClass('choices');
+                        var levels = Object.keys(level);
+                        for(var i = 0; i < levels.length; i++) {
+                            $('<button>')
+                                    .addClass('choice')
+                                    .addClass(level[levels[i]])
+                                    .data('level', levels[i])
+                                    .data('levelInt', i)
+                                    .attr('title', levels[i])
+                                    .appendTo($container)
+                                    .on('click', function(){
+                                        $container.find('button').removeClass('selected');
+                                        $(this).addClass('selected');
+                                    });
+                        }
+                        return $container;
+                    },
+                    createKink: function(fields, name){
+                        var $row = $('<tr>').data('kink', name).addClass('kinkRow');
+                        for(var i = 0; i < fields.length; i++) {
+                            var $choices = inputKinks.createChoice();
+                            $choices.data('field', fields[i]);
+                            $choices.addClass('choice-' + strToClass(fields[i]));
+                            $('<td>').append($choices).appendTo($row);
+                        }
+                        $('<td>').text(name).appendTo($row);
+                        $row.addClass('kink-' + strToClass(name));
+                        return $row;
+                    },
+                    createColumns: function(){
+                        var colClasses = ['100', '50', '33', '25'];
+                        
+                        var numCols = Math.floor((document.body.scrollWidth - 20) / 400);
+                        if(!numCols) numCols = 1;
+                        if(numCols > 4) numCols = 4;
+                        var colClass = 'col' + colClasses[numCols - 1];
+                        
+                        inputKinks.$columns = [];
+                        for(var i = 0; i < numCols; i++){
+                            inputKinks.$columns.push($('<div>').addClass('col ' + colClass).appendTo($('#InputList')));
+                        }
+                    },
+                    placeCategories: function($categories){
+                        var $body = $('body');
+                        var totalHeight = 0;
+                        for(var i = 0; i < $categories.length; i++) {
+                            var $clone = $categories[i].clone().appendTo($body);
+                            var height = $clone.height();;
+                            totalHeight += height;
+                            $clone.remove();
+                        }
+                        
+                        var colHeight = totalHeight / (inputKinks.$columns.length);
+                        var colIndex = 0;
+                        for(var i = 0; i < $categories.length; i++) {
+                            var curHeight = inputKinks.$columns[colIndex].height();
+                            var catHeight = $categories[i].height();
+                            if(curHeight + (catHeight / 2) > colHeight) colIndex++;
+                            while(colIndex >= inputKinks.$columns.length) {
+                                colIndex--;
+                            }
+                            inputKinks.$columns[colIndex].append($categories[i]);
+                        }
+                    },
+                    fillInputList: function(){
+                        $('#InputList').empty();
+                        inputKinks.createColumns();
+                        
+                        var $categories = [];
+                        var kinkCats = Object.keys(kinks);
+                        for(var i = 0; i < kinkCats.length; i++) {
+                            var catName = kinkCats[i];
+                            var category = kinks[catName];
+                            var fields = category.fields;
+                            var kinkArr = category.kinks;
+                            
+                            var $category = inputKinks.createCategory(catName, fields);
+                            var $tbody = $category.find('tbody');
+                            for(var k = 0; k < kinkArr.length; k++) {
+                                $tbody.append(inputKinks.createKink(fields, kinkArr[k]));
+                            }
+                            
+                            $categories.push($category);
+                        }
+                        inputKinks.placeCategories($categories);
+                        
+                        // Make things update hash
+                        $('#InputList').find('button.choice').on('click', function(){
+                            location.hash = inputKinks.updateHash();
+                        });
+                    },
+                    init: function(){
+                        // Set up DOM
+                        inputKinks.fillInputList();
+                        
+                        // Read hash
+                        inputKinks.parseHash();
+                        
+                        // Make export button work
+                        $('#Export').on('click', inputKinks.export);
+                        $('#URL').on('click', function(){ this.select(); });
+                        
+                        // On resize, redo columns
+                        (function(){
+                            
+                            var lastResize = 0;
+                            $(window).on('resize', function(){
+                                var curTime = (new Date()).getTime();
+                                lastResize = curTime;
+                                setTimeout(function(){
+                                    if(lastResize === curTime) {
+                                        inputKinks.fillInputList();
+                                        inputKinks.parseHash();
+                                    }
+                                }, 500);
+                            });
+                            
+                        })();
+                    },
+                    hashChars: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.=+*^!@",
+                    maxPow: function(base, maxVal) {
+                        var maxPow = 1;
+                        for(var pow = 1; Math.pow(base, pow) <= maxVal; pow++){
+                            maxPow = pow;
+                        }
+                        return maxPow;
+                    },
+                    prefix: function(input, len, char){
+                        while(input.length < len) {
+                            input = char + input;
+                        }
+                        return input;
+                    },
+                    drawLegend: function(context){
+                        context.font = "bold 13px Arial";
+                        context.fillStyle = '#000000';
+                        
+                        var levels = Object.keys(colors);
+                        var x = context.canvas.width - 15 - (120 * levels.length);
+                        for(var i = 0; i < levels.length; i++) {
+                            context.beginPath();
+                            context.arc(x + (120 * i), 17, 8, 0, 2 * Math.PI, false);
+                            context.fillStyle = colors[levels[i]];
+                            context.fill();
+                            context.strokeStyle = 'rgba(0, 0, 0, 0.5)'
+                            context.lineWidth = 1;
+                            context.stroke();
+                            
+                            context.fillStyle = '#000000';
+                            context.fillText(levels[i], x + 15 + (i * 120), 22);
+                        }
+                    },
+                    setupCanvas: function(width, height, username){
+                        $('canvas').remove();
+                        var canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        var $canvas = $(canvas);
+                        $canvas.css({
+                            width: width,
+                            height: height
+                        });
+                        // $canvas.insertBefore($('#InputList'));
+                        
+                        var context = canvas.getContext('2d');
+                        context.fillStyle = '#FFFFFF';
+                        context.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        context.font = "bold 24px Arial";
+                        context.fillStyle = '#000000';
+                        context.fillText('Kinklist ' + username, 5, 25);
+                        
+                        inputKinks.drawLegend(context);
+                        return { context: context, canvas: canvas };
+                    },
+                    drawCallHandlers: {
+                        simpleTitle: function(context, drawCall){
+                            context.fillStyle = '#000000';
+                            context.font = "bold 18px Arial";
+                            context.fillText(drawCall.data, drawCall.x, drawCall.y + 5);
+                        },
+                        titleSubtitle: function(context, drawCall){
+                            context.fillStyle = '#000000';
+                            context.font = "bold 18px Arial";
+                            context.fillText(drawCall.data.category, drawCall.x, drawCall.y + 5);
+                            
+                            var fieldsStr = drawCall.data.fields.join(', ');
+                            context.font = "italic 12px Arial";
+                            context.fillText(fieldsStr, drawCall.x, drawCall.y + 20);
+                        },
+                        kinkRow: function(context, drawCall){
+                            context.fillStyle = '#000000';
+                            context.font = "12px Arial";
+                            
+                            var x = drawCall.x + 5 + (drawCall.data.choices.length * 20);
+                            var y = drawCall.y - 6;
+                            context.fillText(drawCall.data.text, x, y);
+                            
+                            // Circles
+                            for(var i = 0; i < drawCall.data.choices.length; i++){
+                                var choice = drawCall.data.choices[i];
+                                var color = colors[choice];
+                                
+                                var x = 10 + drawCall.x + (i * 20);
+                                var y = drawCall.y - 10;
+                                
+                                context.beginPath();
+                                context.arc(x, y, 8, 0, 2 * Math.PI, false);
+                                context.fillStyle = color;
+                                context.fill();
+                                context.strokeStyle = 'rgba(0, 0, 0, 0.5)'
+                                context.lineWidth = 1;
+                                context.stroke();
+                            }
+                            
+                        }
+                    },
+                    export: function(){
+                        var username = prompt("Please enter your name");
+                        if(typeof username !== 'string') return;
+                        else if (username.length ) username = '(' + username + ')';
+                        
+                        $('#Loading').fadeIn();
+                        $('#URL').fadeOut();
+                        
+                        // Constants
+                        var numCols = 6;
+                        var columnWidth = 250;
+                        var simpleTitleHeight = 35;
+                        var titleSubtitleHeight = 50;
+                        var rowHeight = 25;
+                        var offsets = {
+                            left: 10,
+                            right: 10,
+                            top: 50,
+                            bottom: 10
+                        };
+                        
+                        // Find out how many we have of everything
+                        var numCats = $('.kinkCategory').length;
+                        var dualCats = $('.kinkCategory th + th + th').length;
+                        var simpleCats = numCats - dualCats;
+                        var numKinks = $('.kinkRow').length;
+                        
+                        // Determine the height required for all categories and kinks
+                        var totalHeight = (
+                                (numKinks * rowHeight) +
+                                (dualCats * titleSubtitleHeight) +
+                                (simpleCats * simpleTitleHeight)
+                        );
+                        
+                        // Initialize columns and drawStacks
+                        var columns = [];
+                        for(var i = 0; i < numCols; i++){
+                            columns.push({ height: 0, drawStack: []});
+                        }
+                        
+                        // Create drawcalls and place them in the drawStack
+                        // for the appropriate column
+                        var avgColHeight = totalHeight / numCols;
+                        var columnIndex = 0;
+                        $('.kinkCategory').each(function(){
+                            var $cat = $(this);
+                            var catName = $cat.data('category');
+                            var category = kinks[catName];
+                            var fields = category.fields;
+                            var catKinks = category.kinks;
+                            
+                            var catHeight = 0;
+                            catHeight += (fields.length === 1) ? simpleTitleHeight : titleSubtitleHeight;
+                            catHeight += (catKinks.length * rowHeight);
+                            
+                            // Determine which column to place this category in
+                            if((columns[columnIndex].height + (catHeight / 2)) > avgColHeight) columnIndex++;
+                            while(columnIndex >= numCols) columnIndex--;
+                            var column = columns[columnIndex];
+                            
+                            // Drawcall for title
+                            var drawCall = { y: column.height };
+                            column.drawStack.push(drawCall);
+                            if(fields.length < 2) {
+                                column.height += simpleTitleHeight;
+                                drawCall.type =  'simpleTitle';
+                                drawCall.data = catName;
+                            }
+                            else {
+                                column.height += titleSubtitleHeight;
+                                drawCall.type =  'titleSubtitle';
+                                drawCall.data = {
+                                    category: catName,
+                                    fields: fields
+                                };
+                            }
+                            
+                            // Drawcalls for kinks
+                            $cat.find('.kinkRow').each(function(){
+                                var $kinkRow = $(this);
+                                var drawCall = { y: column.height, type: 'kinkRow', data: {
+                                        choices: [],
+                                        text: $kinkRow.data('kink')
+                                }};
+                                column.drawStack.push(drawCall);
+                                column.height += rowHeight;
+                                
+                                // Add choices
+                                $kinkRow.find('.choices').each(function(){
+                                    var $selection = $(this).find('.choice.selected');
+                                    var selection = ($selection.length > 0)
+                                            ? $selection.data('level')
+                                            : Object.keys(level)[0];
+                                    
+                                    drawCall.data.choices.push(selection);
+                                });
+                            });
+                        });
+                        
+                        var tallestColumnHeight = 0;
+                        for(var i = 0; i < columns.length; i++){
+                            if(tallestColumnHeight < columns[i].height) {
+                                tallestColumnHeight = columns[i].height;
+                            }
+                        }
+                        
+                        var canvasWidth = offsets.left + offsets.right + (columnWidth * numCols);
+                        var canvasHeight = offsets.top + offsets.bottom + tallestColumnHeight;
+                        var setup = inputKinks.setupCanvas(canvasWidth, canvasHeight, username);
+                        var context = setup.context;
+                        var canvas = setup.canvas;
+                        
+                        for(var i = 0; i < columns.length; i++) {
+                            var column = columns[i];
+                            var drawStack = column.drawStack;
+                            
+                            var drawX = offsets.left + (columnWidth * i);
+                            for(var j = 0; j < drawStack.length; j++){
+                                var drawCall = drawStack[j];
+                                drawCall.x = drawX;
+                                drawCall.y += offsets.top;
+                                inputKinks.drawCallHandlers[drawCall.type](context, drawCall);
+                            }
+                        }
+                        
+                        //return $(canvas).insertBefore($('#InputList'));
+                        
+                        // Send canvas to imgur
+                        $.ajax({
+                            url: 'https://api.imgur.com/3/image',
+                            type: 'POST',
+                            headers: {
+                                // Your application gets an imgurClientId from Imgur
+                                Authorization: 'Client-ID ' + imgurClientId,
+                                Accept: 'application/json'
+                            },
+                            data: {
+                                // convert the image data to base64
+                                image:  canvas.toDataURL().split(',')[1],
+                                type: 'base64'
+                            },
+                            success: function(result) {
+                                $('#Loading').hide();
+                                var url = 'https://i.imgur.com/' + result.data.id + '.png';
+                                $('#URL').val(url).fadeIn();
+                            }
+                        });
+                    },
+                    encode: function(base, input){
+                        var hashBase = inputKinks.hashChars.length;
+                        var outputPow = inputKinks.maxPow(hashBase, Number.MAX_SAFE_INTEGER);
+                        var inputPow = inputKinks.maxPow(base, Math.pow(hashBase, outputPow));
+                        
+                        var output = "";
+                        var numChunks = Math.ceil(input.length / inputPow);
+                        var inputIndex = 0;
+                        for(var chunkId = 0; chunkId < numChunks; chunkId++) {
+                            var inputIntValue = 0;
+                            for(var pow = 0; pow < inputPow; pow++) {
+                                var inputVal = input[inputIndex++];
+                                if(typeof inputVal === "undefined") break;
+                                var val = inputVal * Math.pow(base, pow);
+                                inputIntValue += val;
+                            }
+                            
+                            var outputCharValue = "";
+                            while(inputIntValue > 0) {
+                                var maxPow = Math.floor(log(inputIntValue, hashBase));
+                                var powVal = Math.pow(hashBase, maxPow);
+                                var charInt = Math.floor(inputIntValue / powVal);
+                                var subtract = charInt * powVal;
+                                var char = inputKinks.hashChars[charInt];
+                                outputCharValue += char;
+                                inputIntValue -= subtract;
+                            }
+                            var chunk = inputKinks.prefix(outputCharValue, outputPow, inputKinks.hashChars[0]);
+                            output += chunk;
+                        }
+                        return output;
+                    },
+                    decode: function(base, output){
+                        var hashBase = inputKinks.hashChars.length;
+                        var outputPow = inputKinks.maxPow(hashBase, Number.MAX_SAFE_INTEGER);
+                        
+                        var values = [];
+                        var numChunks = Math.max(output.length / outputPow)
+                        for(var i = 0; i < numChunks; i++){
+                            var chunk = output.substring(i * outputPow, (i + 1) * outputPow);
+                            var chunkValues = inputKinks.decodeChunk(base, chunk);
+                            for(var j = 0; j < chunkValues.length; j++) {
+                                values.push(chunkValues[j]);
+                            }
+                        }
+                        return values;
+                    },
+                    decodeChunk: function(base, chunk){
+                        var hashBase = inputKinks.hashChars.length;
+                        var outputPow = inputKinks.maxPow(hashBase, Number.MAX_SAFE_INTEGER);
+                        var inputPow = inputKinks.maxPow(base, Math.pow(hashBase, outputPow));
+                        
+                        var chunkInt = 0;
+                        for(var i = 0; i < chunk.length; i++) {
+                            var char = chunk[i];
+                            var charInt = inputKinks.hashChars.indexOf(char);
+                            var pow = chunk.length - 1 - i;
+                            var intVal = Math.pow(hashBase, pow) * charInt;
+                            chunkInt += intVal;
+                        }
+                        var chunkIntCopy = chunkInt;
+                        
+                        var output = [];
+                        for(var pow = inputPow - 1; pow >= 0; pow--) {
+                            var posBase = Math.floor(Math.pow(base, pow));
+                            var posVal = Math.floor(chunkInt / posBase);
+                            var subtract = posBase * posVal;
+                            output.push(posVal);
+                            chunkInt -= subtract;
+                        }
+                        output.reverse();
+                        return output;
+                    },
+                    updateHash: function(){
+                        var hashValues = [];
+                        $('#InputList .choices').each(function(){
+                            var $this = $(this);
+                            var lvlInt = $this.find('.selected').data('levelInt');
+                            if(!lvlInt) lvlInt = 0;
+                            hashValues.push(lvlInt);
+                        });
+                        return inputKinks.encode(Object.keys(colors).length, hashValues);
+                    },
+                    parseHash: function(){
+                        var hash = location.hash.substring(1);
+                        if(hash.length < 10) return;
+                        
+                        var values = inputKinks.decode(Object.keys(colors).length, hash);
+                        var valueIndex = 0;
+                        $('#InputList .choices').each(function(){
+                            var $this = $(this);
+                            var value = values[valueIndex++];
+                            $this.children().eq(value).addClass('selected');
+                        });
+                    }
+                };
+                
+                inputKinks.init();
+                window.inputKinks = inputKinks;
+            });
+        </script>
+    </body>
+</html>
