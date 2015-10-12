@@ -971,6 +971,10 @@
                                 $('#Loading').hide();
                                 var url = 'https://i.imgur.com/' + result.data.id + '.png';
                                 $('#URL').val(url).fadeIn();
+                            },
+                            fail: function(){
+                                $('#Loading').hide();
+                                alert('Failed to upload to imgur, could not connect');
                             }
                         });
                     },
