@@ -1,4 +1,5 @@
 .idea
-dest/
+dist/
 node_modules/
 config/
+ftpinfo.js
