@@ -1,0 +1,4 @@
+.idea
+dest/
+node_modules/
+config/
