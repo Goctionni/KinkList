@@ -1,0 +1,32 @@
+{
+  "name": "kinklist",
+  "version": "2.0.0",
+  "description": "Improved kinklist to make listing your kinks as easy as could be",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Goctionni/KinkList.git"
+  },
+  "keywords": [
+    "js",
+    "canvas",
+    "es6",
+    "html",
+    "css",
+    "scss"
+  ],
+  "author": "Goctionni",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Goctionni/KinkList/issues"
+  },
+  "homepage": "https://github.com/Goctionni/KinkList#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-sass": "^3.1.0"
+  }
+}
