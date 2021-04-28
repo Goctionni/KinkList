@@ -256,8 +256,9 @@
                 display: block;
                 clear: both;
             }
-            .kinkCategory {
-
+            .kinkCategory h2 {
+                display: inline-block;
+                margin-right: 20px;
             }
             .col {
                 float: left;
@@ -755,9 +756,28 @@
                     createCategory: function(name, fields){
                         var $category = $('<div class="kinkCategory">')
                                 .addClass('cat-' + strToClass(name))
+                                .addClass('columns-' + fields.length)
+                                .addClass('included')
                                 .data('category', name)
-                                .append($('<h2>')
-                                .text(name));
+                                .append($('<h2>').text(name))
+
+                        var includeButton = $('<input type="checkbox">')
+                          .attr('name', 'include-' + strToClass(name))
+                          .prop('checked', true)
+                          .change(function() {
+                            $category.removeClass('included');
+                            if ($(this)[0].checked) {
+                              $category.addClass('included');
+                            }
+                          });
+
+                        var includeText = $('<label>')
+                          .attr('for', 'include-' + strToClass(name))
+                          .text('include');
+
+                        $category
+                            .append(includeButton)
+                            .append(includeText);
 
                         var $table = $('<table class="kinkGroup">').data('fields', fields);
                         var $thead = $('<thead>').appendTo($table);
@@ -1011,10 +1031,11 @@
                         };
 
                         // Find out how many we have of everything
-                        var numCats = $('.kinkCategory').length;
-                        var dualCats = $('.kinkCategory th + th + th').length;
+                        var categories = $('.kinkCategory.included')
+                        var numCats = categories.length;
+                        var dualCats = categories.filter('.columns-2').length;
                         var simpleCats = numCats - dualCats;
-                        var numKinks = $('.kinkRow').length;
+                        var numKinks = categories.find('.kinkRow').length;
 
                         // Determine the height required for all categories and kinks
                         var totalHeight = (
@@ -1033,7 +1054,7 @@
                         // for the appropriate column
                         var avgColHeight = totalHeight / numCols;
                         var columnIndex = 0;
-                        $('.kinkCategory').each(function(){
+                        categories.each(function(){
                             var $cat = $(this);
                             var catName = $cat.data('category');
                             var category = kinks[catName];
